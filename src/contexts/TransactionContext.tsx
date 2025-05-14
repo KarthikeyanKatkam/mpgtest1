@@ -15,6 +15,7 @@ interface TransactionContextType extends TransactionState {
   fetchTransactions: () => Promise<void>;
   createTransaction: (
     fromWalletId: string,
+    toAddress: string,
     amount: number,
     currency: CryptoCurrency
   ) => Promise<void>;
@@ -102,9 +103,12 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const createTransaction = async (
     fromWalletId: string,
+    toAddress: string,
     amount: number,
     currency: CryptoCurrency
   ) => {
+    if (!user) return;
+    
     dispatch({ type: 'CREATE_TRANSACTION_START' });
     try {
       // Simulate API call delay
@@ -120,15 +124,14 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
         currency,
         status: 'pending',
         timestamp: new Date(),
-        fee: amount * 0.005, // 0.5% fee for demo,
-        network : 'mainnet', // Ensure 'mainnet' is a valid Network type value
+        fee: amount * 0.005, // 0.5% fee for demo
       };
       
       dispatch({ type: 'CREATE_TRANSACTION_SUCCESS', payload: newTransaction });
       
       // Simulate transaction completion after 3 seconds
       setTimeout(() => {
-        const updatedTransaction: Transaction = {
+        const updatedTransaction = {
           ...newTransaction,
           status: 'completed',
           hash: `0x${Math.random().toString(16).substring(2, 42)}`,

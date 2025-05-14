@@ -8,8 +8,6 @@ export interface User {
   businessId?: string;
 }
 
-export type NetworkType = 'testnet' | 'devnet' | 'mainnet';
-
 export interface Network {
   id: string;
   name: string;
@@ -27,7 +25,7 @@ export interface Wallet {
   address: string;
   balance: number;
   currency: CryptoCurrency;
-  network: NetworkType;
+  network: Network;
   isActive: boolean;
   createdAt: Date;
   depositEnabled: boolean;

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { AuthState, User } from '../types';
-import { mockUsers } from '../utils/mockData';
+import { supabase } from '../utils/supabase';
+import { z } from 'zod';
 
 type AuthAction =
   | { type: 'LOGIN_START' }
@@ -13,21 +14,21 @@ type AuthAction =
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   signup: (username: string, email: string, password: string) => Promise<void>;
 }
 
 const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
-  isLoading: false,
+  isLoading: true,
   error: null,
 };
 
 const AuthContext = createContext<AuthContextType>({
   ...initialState,
   login: async () => {},
-  logout: () => {},
+  logout: async () => {},
   signup: async () => {},
 });
 
@@ -59,87 +60,163 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
     case 'LOGOUT':
       return {
         ...initialState,
+        isLoading: false,
       };
     default:
       return state;
   }
 };
 
+// Validation schemas
+const emailSchema = z.string().email('Invalid email address');
+const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
+const usernameSchema = z.string().min(3, 'Username must be at least 3 characters');
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  // Check for saved auth state on initial load
+  // Check auth state on mount
   useEffect(() => {
-    const savedUser = localStorage.getItem('mayaUser');
-    if (savedUser) {
-      dispatch({
-        type: 'LOGIN_SUCCESS',
-        payload: JSON.parse(savedUser),
-      });
-    }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profile) {
+            dispatch({
+              type: 'LOGIN_SUCCESS',
+              payload: {
+                id: session.user.id,
+                email: session.user.email!,
+                username: profile.username,
+                createdAt: new Date(profile.created_at),
+              },
+            });
+          }
+        } else {
+          dispatch({ type: 'LOGOUT' });
+        }
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  // Mock login
   const login = async (email: string, password: string) => {
-    dispatch({ type: 'LOGIN_START' });
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      // Find user with matching email
-      const user = mockUsers.find(u => u.email === email);
-      
-      if (user && password.length >= 6) { // Simple validation for demo
-        localStorage.setItem('mayaUser', JSON.stringify(user));
-        dispatch({ type: 'LOGIN_SUCCESS', payload: user });
-      } else {
-        dispatch({ type: 'LOGIN_FAILURE', payload: 'Invalid email or password' });
-      }
-    } catch (error) {
-      dispatch({ type: 'LOGIN_FAILURE', payload: 'Login failed. Please try again.' });
-    }
-  };
+      // Validate input
+      emailSchema.parse(email);
+      passwordSchema.parse(password);
 
-  // Mock signup
-  const signup = async (username: string, email: string, password: string) => {
-    dispatch({ type: 'SIGNUP_START' });
-    try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Check if user already exists
-      if (mockUsers.some(u => u.email === email)) {
-        dispatch({ type: 'SIGNUP_FAILURE', payload: 'Email already in use' });
-        return;
-      }
+      dispatch({ type: 'LOGIN_START' });
 
-      // Validate password length
-      if (password.length < 6) {
-        dispatch({ type: 'SIGNUP_FAILURE', payload: 'Password must be at least 6 characters long' });
-        return;
-      }
-
-      // Create new user
-      const newUser: User = {
-        id: `user${mockUsers.length + 1}`,
-        username,
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        createdAt: new Date(),
-      };
-      
-      // In a real app, this would be an API call to create a user
-      // For this demo, we'll just create a new user object
-      localStorage.setItem('mayaUser', JSON.stringify(newUser));
-      dispatch({ type: 'SIGNUP_SUCCESS', payload: newUser });
+        password,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+
+        if (profile) {
+          dispatch({
+            type: 'LOGIN_SUCCESS',
+            payload: {
+              id: data.user.id,
+              email: data.user.email!,
+              username: profile.username,
+              createdAt: new Date(profile.created_at),
+            },
+          });
+        } else {
+          throw new Error('Profile not found');
+        }
+      }
     } catch (error) {
-      dispatch({ type: 'SIGNUP_FAILURE', payload: 'Signup failed. Please try again.' });
+      dispatch({
+        type: 'LOGIN_FAILURE',
+        payload: error instanceof Error ? error.message : 'Login failed',
+      });
     }
   };
 
-  // Logout
-  const logout = () => {
-    localStorage.removeItem('mayaUser');
-    dispatch({ type: 'LOGOUT' });
+  const signup = async (username: string, email: string, password: string) => {
+    try {
+      // Validate input
+      usernameSchema.parse(username);
+      emailSchema.parse(email);
+      passwordSchema.parse(password);
+
+      dispatch({ type: 'SIGNUP_START' });
+
+      // First, create the auth user
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (signUpError) {
+        throw signUpError;
+      }
+
+      if (!authData.user) {
+        throw new Error('User creation failed');
+      }
+
+      // Then, create the profile
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert([
+          {
+            id: authData.user.id,
+            username,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        ]);
+
+      if (profileError) {
+        // If profile creation fails, we should clean up the auth user
+        await supabase.auth.signOut();
+        throw new Error('Failed to create profile');
+      }
+
+      dispatch({
+        type: 'SIGNUP_SUCCESS',
+        payload: {
+          id: authData.user.id,
+          email: authData.user.email!,
+          username,
+          createdAt: new Date(),
+        },
+      });
+    } catch (error) {
+      dispatch({
+        type: 'SIGNUP_FAILURE',
+        payload: error instanceof Error ? error.message : 'Signup failed',
+      });
+    }
+  };
+
+  const logout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (!error) {
+      dispatch({ type: 'LOGOUT' });
+    }
   };
 
   return (

@@ -12,14 +12,22 @@ const DashboardHome: React.FC = () => {
   const { transactions, isLoading: transactionsLoading } = useTransaction();
   const [totalBalance, setTotalBalance] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Filter valid wallets
+  const validHotWallets = hotWallets.filter(wallet => 
+    wallet && 
+    typeof wallet === 'object' && 
+    wallet.type && 
+    wallet.currency && 
+    typeof wallet.balance === 'number' && 
+    wallet.address
+  );
   
-  // Calculate total balance
+  // Calculate total balance with null checks
   useEffect(() => {
-    // In a real app, you would convert all balances to a single currency
-    // For this demo, we'll just sum the values as if they're all in USD
-    const total = hotWallets.reduce((sum, wallet) => sum + wallet.balance, 0);
+    const total = validHotWallets.reduce((sum, wallet) => sum + wallet.balance, 0);
     setTotalBalance(total);
-  }, [hotWallets]);
+  }, [validHotWallets]);
   
   const simulateRefresh = () => {
     setRefreshing(true);
@@ -28,9 +36,9 @@ const DashboardHome: React.FC = () => {
     }, 1500);
   };
   
-  // Get unique cryptocurrencies from user wallets
+  // Get unique cryptocurrencies from valid wallets
   const getUniqueCurrencies = (): CryptoCurrency[] => {
-    const currencies = hotWallets.map(wallet => wallet.currency);
+    const currencies = validHotWallets.map(wallet => wallet.currency);
     return [...new Set(currencies)] as CryptoCurrency[];
   };
   
@@ -91,7 +99,7 @@ const DashboardHome: React.FC = () => {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Active Wallets</p>
-                <h3 className="text-2xl font-bold text-gray-900 mt-2">{hotWallets.length}</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mt-2">{validHotWallets.length}</h3>
                 <p className="text-sm text-gray-600 mt-1">{getUniqueCurrencies().join(', ')}</p>
               </div>
               <div className="bg-green-100 p-3 rounded-full">
@@ -139,7 +147,7 @@ const DashboardHome: React.FC = () => {
                   <TransactionCard 
                     key={transaction.id} 
                     transaction={transaction} 
-                    walletId={hotWallets[0]?.id} 
+                    walletId={validHotWallets[0]?.id} 
                   />
                 ))
               )}
@@ -157,7 +165,7 @@ const DashboardHome: React.FC = () => {
                 <div className="text-center py-6">
                   <p className="text-gray-500">Loading wallets...</p>
                 </div>
-              ) : hotWallets.length === 0 ? (
+              ) : validHotWallets.length === 0 ? (
                 <div className="text-center py-10">
                   <Wallet size={40} className="mx-auto text-gray-300 mb-3" />
                   <p className="text-gray-500">No wallets yet</p>
@@ -165,7 +173,7 @@ const DashboardHome: React.FC = () => {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {hotWallets.map(wallet => (
+                  {validHotWallets.map(wallet => (
                     <WalletCard 
                       key={wallet.id} 
                       wallet={wallet} 

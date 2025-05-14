@@ -42,6 +42,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onToggleForm }) => {
       await login(email, password);
     }
   };
+
+  const loginWithDemo = async () => {
+    await login('demo@example.com', 'demo123456');
+  };
   
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -106,6 +110,25 @@ const LoginForm: React.FC<LoginFormProps> = ({ onToggleForm }) => {
         isLoading={isLoading}
       >
         Sign in
+      </Button>
+
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-300"></div>
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="px-2 bg-white text-gray-500">Or</span>
+        </div>
+      </div>
+
+      <Button
+        type="button"
+        variant="outline"
+        fullWidth
+        onClick={loginWithDemo}
+        isLoading={isLoading}
+      >
+        Try Demo Account
       </Button>
       
       <div className="text-center mt-4">

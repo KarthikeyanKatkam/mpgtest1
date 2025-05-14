@@ -20,6 +20,25 @@ const WalletsPage: React.FC = () => {
   };
   
   const currencies: CryptoCurrency[] = ['BTC', 'ETH', 'LTC', 'XRP', 'USDT'];
+
+  // Filter valid wallets
+  const validHotWallets = hotWallets.filter(wallet => 
+    wallet && 
+    typeof wallet === 'object' && 
+    wallet.type && 
+    wallet.currency && 
+    typeof wallet.balance === 'number' && 
+    wallet.address
+  );
+  
+  const validColdWallets = coldWallets.filter(wallet => 
+    wallet && 
+    typeof wallet === 'object' && 
+    wallet.type && 
+    wallet.currency && 
+    typeof wallet.balance === 'number' && 
+    wallet.address
+  );
   
   return (
     <div className="max-w-7xl mx-auto">
@@ -54,7 +73,7 @@ const WalletsPage: React.FC = () => {
               <div className="text-center py-6">
                 <p className="text-gray-500">Loading wallets...</p>
               </div>
-            ) : hotWallets.length === 0 ? (
+            ) : validHotWallets.length === 0 ? (
               <div className="text-center py-10">
                 <WalletIcon size={40} className="mx-auto text-gray-300 mb-3" />
                 <p className="text-gray-500">No hot wallets yet</p>
@@ -69,7 +88,7 @@ const WalletsPage: React.FC = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {hotWallets.map(wallet => (
+                {validHotWallets.map(wallet => (
                   <WalletCard 
                     key={wallet.id} 
                     wallet={wallet} 
@@ -96,7 +115,7 @@ const WalletsPage: React.FC = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {coldWallets.map(wallet => (
+                {validColdWallets.map(wallet => (
                   <WalletCard 
                     key={wallet.id} 
                     wallet={wallet} 

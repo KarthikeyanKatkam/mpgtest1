@@ -9,6 +9,11 @@ interface WalletCardProps {
 }
 
 const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick }) => {
+  // Early return if wallet is invalid
+  if (!wallet || typeof wallet !== 'object' || !wallet.type || !wallet.currency || typeof wallet.balance !== 'number' || !wallet.address) {
+    return null;
+  }
+
   const getCurrencyColor = (currency: string) => {
     switch (currency) {
       case 'BTC':
@@ -85,7 +90,6 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick }) => {
             <button 
               onClick={(e) => copyToClipboard(wallet.address, e)}
               className="text-gray-400 hover:text-gray-600 transition-colors"
-              title="Copy address to clipboard"
             >
               <Copy size={14} />
             </button>
@@ -96,7 +100,6 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick }) => {
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
             className="text-blue-500 hover:text-blue-700 transition-colors"
-            title="View wallet address on explorer"
           >
             <ExternalLink size={14} />
           </a>

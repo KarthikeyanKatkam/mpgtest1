@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { WalletState, Wallet, CryptoCurrency } from '../types';
-import { getUserWallets, getCompanyWallets } from '../utils/mockData';
+import { supabase } from '../utils/supabase';
 import { useAuth } from './AuthContext';
 
 type WalletAction =
   | { type: 'FETCH_WALLETS_START' }
-  | { type: 'FETCH_WALLETS_SUCCESS'; payload: { hot: Wallet[], cold: Wallet[] } }
+  | { type: 'FETCH_WALLETS_SUCCESS'; payload: { hot: Wallet[]; cold: Wallet[] } }
   | { type: 'FETCH_WALLETS_FAILURE'; payload: string }
   | { type: 'CREATE_WALLET_START' }
   | { type: 'CREATE_WALLET_SUCCESS'; payload: Wallet }
@@ -77,61 +77,69 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const fetchWallets = async () => {
     if (!user) return;
-    
+
     dispatch({ type: 'FETCH_WALLETS_START' });
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      // Get user hot wallets and company cold wallets
-      const hotWallets = getUserWallets(user.id);
-      const coldWallets = getCompanyWallets();
-      
+      const { data: hotWallets, error: hotError } = await supabase
+        .from('wallets')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('type', 'hot');
+
+      const { data: coldWallets, error: coldError } = await supabase
+        .from('wallets')
+        .select('*')
+        .eq('type', 'cold');
+
+      if (hotError || coldError) {
+        throw hotError || coldError;
+      }
+
       dispatch({
         type: 'FETCH_WALLETS_SUCCESS',
-        payload: { hot: hotWallets, cold: coldWallets },
+        payload: {
+          hot: hotWallets || [],
+          cold: coldWallets || [],
+        },
       });
     } catch (error) {
       dispatch({
         type: 'FETCH_WALLETS_FAILURE',
-        payload: 'Failed to fetch wallets. Please try again.',
+        payload: error instanceof Error ? error.message : 'Failed to fetch wallets',
       });
     }
   };
 
   const createWallet = async (currency: CryptoCurrency) => {
     if (!user) return;
-    
+
     dispatch({ type: 'CREATE_WALLET_START' });
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Generate random wallet address (in a real app, this would come from the backend)
-      const address = `0x${Math.random().toString(16).substring(2, 42)}`;
-      
-      // Create new wallet
-      const newWallet: Wallet = {
-        id: `wallet${Math.random().toString(16).substring(2, 10)}`,
-        userId: user.id,
-        type: 'hot',
-        address,
-        balance: 0,
-        currency,
-        isActive: true,
-        createdAt: new Date(),
-        network: 'Ethereum', // Example network
-        depositEnabled: true,
-        withdrawalEnabled: true,
-        minDeposit: 0.01, // Example minimum deposit
-        maxDeposit: 100, // Example maximum deposit
-      };
-      
-      dispatch({ type: 'CREATE_WALLET_SUCCESS', payload: newWallet });
+      // Generate a random wallet address (in a real app, this would be done securely on the backend)
+      const address = `0x${Array.from({ length: 40 }, () => 
+        Math.floor(Math.random() * 16).toString(16)).join('')}`;
+
+      const { data: wallet, error } = await supabase
+        .from('wallets')
+        .insert({
+          user_id: user.id,
+          type: 'hot',
+          address,
+          currency,
+          balance: 0,
+          is_active: true,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      if (!wallet) throw new Error('Failed to create wallet');
+
+      dispatch({ type: 'CREATE_WALLET_SUCCESS', payload: wallet });
     } catch (error) {
       dispatch({
         type: 'CREATE_WALLET_FAILURE',
-        payload: 'Failed to create wallet. Please try again.',
+        payload: error instanceof Error ? error.message : 'Failed to create wallet',
       });
     }
   };
