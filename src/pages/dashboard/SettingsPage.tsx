@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import Card, { CardBody, CardHeader } from '../../components/ui/Card';
+import Card, { CardBody } from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { User, Lock, Bell, Shield, Eye, EyeOff } from 'lucide-react';

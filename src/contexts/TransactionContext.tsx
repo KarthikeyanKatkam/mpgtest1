@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { TransactionState, Transaction, CryptoCurrency } from '../types';
+import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
+import { TransactionState, Transaction, CryptoCurrency, Network } from '../types';
 import { getUserTransactions } from '../utils/mockData';
 import { useAuth } from './AuthContext';
 
@@ -72,13 +72,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [state, dispatch] = useReducer(transactionReducer, initialState);
   const { user, isAuthenticated } = useAuth();
 
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      fetchTransactions();
-    }
-  }, [isAuthenticated, user]);
-
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     if (!user) return;
     
     dispatch({ type: 'FETCH_TRANSACTIONS_START' });
@@ -93,13 +87,19 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
         type: 'FETCH_TRANSACTIONS_SUCCESS',
         payload: transactions,
       });
-    } catch (error) {
+    } catch (err) {
       dispatch({
         type: 'FETCH_TRANSACTIONS_FAILURE',
         payload: 'Failed to fetch transactions. Please try again.',
       });
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      fetchTransactions();
+    }
+  }, [isAuthenticated, user, fetchTransactions]);
 
   const createTransaction = async (
     fromWalletId: string,
@@ -114,14 +114,23 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // In a real app, this would verify the destination address and create a transaction on the blockchain
       // For this demo, we'll just create a new transaction object
+      const mockNetwork: Network = {
+        id: 'eth-mainnet',
+        name: 'Ethereum Mainnet',
+        symbol: 'ETH',
+        chainId: 1,
+        isTestnet: false,
+        explorerUrl: 'https://etherscan.io'
+      };
+
       const newTransaction: Transaction = {
         id: `tx${Math.random().toString(16).substring(2, 10)}`,
         fromWalletId,
         toWalletId: 'wallet4', // Assuming transfer to company wallet
         amount,
         currency,
+        network: mockNetwork,
         status: 'pending',
         timestamp: new Date(),
         fee: amount * 0.005, // 0.5% fee for demo
@@ -131,7 +140,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       
       // Simulate transaction completion after 3 seconds
       setTimeout(() => {
-        const updatedTransaction = {
+        const updatedTransaction: Transaction = {
           ...newTransaction,
           status: 'completed',
           hash: `0x${Math.random().toString(16).substring(2, 42)}`,
@@ -139,7 +148,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
         
         dispatch({ type: 'CREATE_TRANSACTION_SUCCESS', payload: updatedTransaction });
       }, 3000);
-    } catch (error) {
+    } catch (err) {
       dispatch({
         type: 'CREATE_TRANSACTION_FAILURE',
         payload: 'Failed to create transaction. Please try again.',

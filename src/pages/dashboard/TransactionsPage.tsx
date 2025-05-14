@@ -4,8 +4,7 @@ import Card, { CardBody, CardHeader } from '../../components/ui/Card';
 import TransactionCard from '../../components/dashboard/TransactionCard';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
-import { ArrowDownUp, Filter, Download } from 'lucide-react';
-import { Transaction } from '../../types';
+import { ArrowDownUp, Download } from 'lucide-react';
 
 const TransactionsPage: React.FC = () => {
   const { transactions, isLoading } = useTransaction();

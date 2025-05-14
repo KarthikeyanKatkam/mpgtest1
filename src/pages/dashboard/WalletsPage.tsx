@@ -19,7 +19,7 @@ const WalletsPage: React.FC = () => {
     setShowCreateModal(false);
   };
   
-  const currencies: CryptoCurrency[] = ['BTC', 'ETH', 'LTC', 'XRP', 'USDT'];
+  const currencies: CryptoCurrency[] = ['BTC', 'ETH', 'USDT'];
 
   // Filter valid wallets
   const validHotWallets = hotWallets.filter(wallet => 

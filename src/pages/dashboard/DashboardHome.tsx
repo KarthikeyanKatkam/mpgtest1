@@ -8,7 +8,7 @@ import { Wallet, ArrowUpDown, TrendingUp, Shield, RefreshCcw } from 'lucide-reac
 import { CryptoCurrency } from '../../types';
 
 const DashboardHome: React.FC = () => {
-  const { hotWallets, coldWallets, isLoading: walletsLoading } = useWallet();
+  const { hotWallets, isLoading: walletsLoading } = useWallet();
   const { transactions, isLoading: transactionsLoading } = useTransaction();
   const [totalBalance, setTotalBalance] = useState(0);
   const [refreshing, setRefreshing] = useState(false);

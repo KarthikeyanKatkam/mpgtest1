@@ -5,8 +5,8 @@ import Card, { CardBody, CardHeader } from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { QRCodeSVG } from 'qrcode.react';
-import { CreditCard, ArrowRight, CheckCircle, Copy, ExternalLink } from 'lucide-react';
-import { CryptoCurrency, Wallet } from '../../types';
+import { CheckCircle, Copy, ExternalLink } from 'lucide-react';
+import { CryptoCurrency } from '../../types';
 
 const PaymentPage: React.FC = () => {
   const { hotWallets } = useWallet();

@@ -38,12 +38,17 @@ export const CardHeader: React.FC<{ children: React.ReactNode; className?: strin
   );
 };
 
-export const CardBody: React.FC<{ children: React.ReactNode; className?: string }> = ({
+export const CardBody: React.FC<{
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+}> = ({
   children,
   className = '',
+  style,
 }) => {
   return (
-    <div className={`p-4 ${className}`}>
+    <div className={`p-4 ${className}`} style={style}>
       {children}
     </div>
   );

@@ -1,4 +1,23 @@
-import { User, Wallet, Transaction, CryptoCurrency } from '../types';
+import { User, Wallet, Transaction, Network } from '../types';
+
+// Mock Networks
+const ethereumNetwork: Network = {
+  id: 'eth-mainnet',
+  name: 'Ethereum Mainnet',
+  symbol: 'ETH',
+  chainId: 1,
+  isTestnet: false,
+  explorerUrl: 'https://etherscan.io'
+};
+
+const bitcoinNetwork: Network = {
+  id: 'btc-mainnet',
+  name: 'Bitcoin Mainnet',
+  symbol: 'BTC',
+  chainId: 0,
+  isTestnet: false,
+  explorerUrl: 'https://blockstream.info'
+};
 
 // Mock Users
 export const mockUsers: User[] = [
@@ -26,8 +45,13 @@ export const mockWallets: Wallet[] = [
     address: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
     balance: 1.25,
     currency: 'ETH',
+    network: ethereumNetwork,
     isActive: true,
     createdAt: new Date('2023-01-20'),
+    depositEnabled: true,
+    withdrawalEnabled: true,
+    minDeposit: 0.01,
+    maxDeposit: 10
   },
   {
     id: 'wallet2',
@@ -36,8 +60,13 @@ export const mockWallets: Wallet[] = [
     address: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa',
     balance: 0.05,
     currency: 'BTC',
+    network: bitcoinNetwork,
     isActive: true,
     createdAt: new Date('2023-01-21'),
+    depositEnabled: true,
+    withdrawalEnabled: true,
+    minDeposit: 0.001,
+    maxDeposit: 1
   },
   {
     id: 'wallet3',
@@ -46,8 +75,13 @@ export const mockWallets: Wallet[] = [
     address: '0x123f681646d4a755815f9cb19e1acc8565a0c2ac',
     balance: 2.5,
     currency: 'ETH',
+    network: ethereumNetwork,
     isActive: true,
     createdAt: new Date('2023-02-25'),
+    depositEnabled: true,
+    withdrawalEnabled: true,
+    minDeposit: 0.01,
+    maxDeposit: 10
   },
   // Cold Wallets (Company Wallets)
   {
@@ -56,8 +90,13 @@ export const mockWallets: Wallet[] = [
     address: 'bc1q9h6ywm9tf57tqc5xva82uzjmd4g9keezcu4rv5',
     balance: 12.3,
     currency: 'BTC',
+    network: bitcoinNetwork,
     isActive: true,
     createdAt: new Date('2022-12-10'),
+    depositEnabled: true,
+    withdrawalEnabled: false,
+    minDeposit: 0.001,
+    maxDeposit: 100
   },
   {
     id: 'wallet5',
@@ -65,8 +104,13 @@ export const mockWallets: Wallet[] = [
     address: '0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7',
     balance: 150,
     currency: 'ETH',
+    network: ethereumNetwork,
     isActive: true,
     createdAt: new Date('2022-12-15'),
+    depositEnabled: true,
+    withdrawalEnabled: false,
+    minDeposit: 0.01,
+    maxDeposit: 1000
   },
 ];
 
@@ -78,6 +122,7 @@ export const mockTransactions: Transaction[] = [
     toWalletId: 'wallet4',
     amount: 0.5,
     currency: 'ETH',
+    network: ethereumNetwork,
     status: 'completed',
     timestamp: new Date('2023-03-10T14:30:00'),
     fee: 0.002,
@@ -89,6 +134,7 @@ export const mockTransactions: Transaction[] = [
     toWalletId: 'wallet4',
     amount: 0.01,
     currency: 'BTC',
+    network: bitcoinNetwork,
     status: 'completed',
     timestamp: new Date('2023-03-15T10:45:00'),
     fee: 0.0005,
@@ -100,6 +146,7 @@ export const mockTransactions: Transaction[] = [
     toWalletId: 'wallet3',
     amount: 0.25,
     currency: 'ETH',
+    network: ethereumNetwork,
     status: 'pending',
     timestamp: new Date('2023-03-20T16:20:00'),
     fee: 0.001,
