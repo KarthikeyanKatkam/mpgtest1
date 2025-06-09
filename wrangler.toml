@@ -1,0 +1,11 @@
+name = "maya-payments-gateway"
+compatibility_date = "2025-06-09"
+
+# Specify the entry point for the Worker script
+main = "src/index.ts"  # Change this to your entry point file
+
+# Or if you are using JavaScript instead of TypeScript
+# main = "src/index.js"
+
+# Optional: Specify the environment if needed
+env.production = { route = "example.com/*" }
