@@ -318,7 +318,7 @@ export default function APIKeysPage() {
                   <div className="text-green-400 mb-2"># Install the Maya SDK</div>
                   <div>npm install maya-payments</div>
                   <div className="mt-3 text-green-400"># Initialize with your keys</div>
-                  <div>const maya = new Maya('{apiKey.publicKey}');</div>
+                  <div>const maya = new Maya('YOUR_PUBLIC_KEY');</div>
                 </div>
                 <Button variant="outline" className="w-full">
                   <Book className="w-4 h-4 mr-2" />

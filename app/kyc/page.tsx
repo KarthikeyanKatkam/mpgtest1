@@ -159,13 +159,14 @@ export default function KYCPage() {
 
   const getCompletionPercentage = () => {
     const requiredDocs = documentTypes.filter(dt => dt.required);
+    if (requiredDocs.length === 0) return 0;
     const approvedDocs = documents.filter(doc => 
       doc.status === 'approved' && requiredDocs.some(req => req.type === doc.type)
     );
     return Math.round((approvedDocs.length / requiredDocs.length) * 100);
   };
 
-  const completionPercentage = getCompletionPercentage();
+  const completionPercentage = Math.max(0, Math.min(100, getCompletionPercentage()));
 
   return (
     <DashboardLayout>
@@ -192,7 +193,7 @@ export default function KYCPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Progress value={completionPercentage} className="mb-4" />
+            <Progress value={completionPercentage} max={100} className="mb-4" />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {documentTypes.map((docType) => {
                 const userDoc = documents.find(doc => doc.type === docType.type);

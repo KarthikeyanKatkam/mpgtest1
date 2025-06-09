@@ -222,7 +222,7 @@ export default function PaymentLinksPage() {
                       <Label htmlFor="currency">Currency</Label>
                       <Select 
                         value={formData.currency} 
-                        onValueChange={(value) => setFormData({...formData, currency: value})}
+                        onValueChange={(value: string) => setFormData({...formData, currency: value})}
                       >
                         <SelectTrigger>
                           <SelectValue />
@@ -250,7 +250,7 @@ export default function PaymentLinksPage() {
                       <Label htmlFor="expiresIn">Expires In (Days)</Label>
                       <Select 
                         value={formData.expiresIn} 
-                        onValueChange={(value) => setFormData({...formData, expiresIn: value})}
+                        onValueChange={(value: string) => setFormData({...formData, expiresIn: value})}
                       >
                         <SelectTrigger>
                           <SelectValue />
