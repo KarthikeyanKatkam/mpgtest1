@@ -1,0 +1,26 @@
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://payments.mayaexchange.co.in/sitemap.xml
+
+# Specific bot instructions
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+# Block access to admin areas
+Disallow: /dashboard/
+Disallow: /login/
+Disallow: /api/
